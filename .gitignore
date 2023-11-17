@@ -1,0 +1,6 @@
+env/
+.vscode/
+target/
+numbers.csv
+.DS_Store
+*.html
