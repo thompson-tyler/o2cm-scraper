@@ -31,7 +31,7 @@ def in_target_dir(filename):
 # month and day are expected to be integers in the range [1, 12] and [1, 31] respectively
 def get_reg_price(month, day):
     # This is kinda wacky but it works so long as the number of days in a month doesn't exceed 31
-    if (month * 32) + day < (EARLY_REG_CUTOFF_MONTH * 32) + EARLY_REG_CUTOFF_DAY:
+    if (month * 32) + day <= (EARLY_REG_CUTOFF_MONTH * 32) + EARLY_REG_CUTOFF_DAY:
         return EARLY_REG_PRICE
     return REG_PRICE
 
@@ -56,6 +56,10 @@ def main():
     by_school_table = pd.read_html(by_school_filename, header=0)[0]
     by_date_table = pd.read_html(by_date_filename, header=0)[0]
     by_number_table = pd.read_html(by_number_filename, header=0)[0]
+
+    # Reverse order of by_date_table so that earlier dates come first
+    # Done so that participants' earliest registration dates are used for pricing
+    by_date_table = by_date_table.iloc[::-1]
 
     # Join first and last names in the by_number_table to make things easier
     by_number_table["Full Name"] = (
