@@ -2,5 +2,6 @@ env/
 .vscode/
 target/
 numbers.csv
+open_dancers.csv
 .DS_Store
 *.html
