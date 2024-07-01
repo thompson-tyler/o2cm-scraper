@@ -1,6 +1,8 @@
 import pandas as pd
-import sys
 import os
+import argparse
+
+from reports import *
 
 
 SEPTEMBER = 9
@@ -14,9 +16,46 @@ EARLY_REG_CUTOFF_MONTH = OCTOBER
 EARLY_REG_CUTOFF_DAY = 19
 
 TARGET_DIR = "./target"
+DEFAULT_BY_SCHOOL_FILENAME = "by_school.html"
+DEFAULT_BY_NUMBER_FILENAME = "by_number.html"
+DEFAULT_BY_DATE_FILENAME = "by_date.html"
 
 OPEN_KEYWORDS = ["open", "champ"]
 OPEN_KEYWORDS_CASE_SENSITIVE = False
+
+
+def build_parser():
+    parser = argparse.ArgumentParser()
+    subparsers = parser.add_subparsers(required=True, dest="mode")
+
+    auto_parser = subparsers.add_parser(
+        "auto", help="Automatically fetch reports from O2CM."
+    )
+    auto_parser.add_argument("--event-id", "-e", help="The event ID.")
+    auto_parser.add_argument(
+        "--after-date",
+        "-d",
+        help="The date after which to fetch entries (YYYY-MM-DD).",
+    )
+
+    file_parser = subparsers.add_parser(
+        "files",
+        help="Use local files as input. They must be HTML files from O2CM.",
+    )
+    file_parser.add_argument(
+        "by_school_filename",
+        help='The "Competitors By School" report filename.',
+    )
+    file_parser.add_argument(
+        "by_date_filename",
+        help='The "Entries by Date report" filename.',
+    )
+    file_parser.add_argument(
+        "by_number_filename",
+        help='The "Competitors By Number" report filename.',
+    )
+
+    return parser
 
 
 def verify_file(filename):
@@ -52,24 +91,46 @@ def save_school_reg(table, name):
 
 def main():
 
-    ### Read input files and prepare output directory ###
+    ### Acquire input files and prepare output directory ###
 
-    if len(sys.argv) == 4:
-        by_school_filename = verify_file(sys.argv[1])
-        by_date_filename = verify_file(sys.argv[2])
-        by_number_filename = verify_file(sys.argv[3])
+    parser = build_parser()
+    args = parser.parse_args()
+
+    if args.mode == "files":
+        by_school_filename = verify_file(args.by_school_filename)
+        by_date_filename = verify_file(args.by_date_filename)
+        by_number_filename = verify_file(args.by_number_filename)
+    elif args.mode == "auto":
+        event_id = args.event_id or input("Event ID: ")
+        after_date = args.after_date or input(
+            "Date after which to fetch entries (YYYY-MM-DD): "
+        )
+
+        by_school_html = fetch_by_school_report(event_id)
+        print("Successfully fetched by_school report")
+        with open(DEFAULT_BY_SCHOOL_FILENAME, "w") as f:
+            f.write(by_school_html)
+
+        by_number_html = fetch_by_number_report(event_id)
+        print("Successfully fetched by_number report")
+        with open(DEFAULT_BY_NUMBER_FILENAME, "w") as f:
+            f.write(by_number_html)
+
+        by_date_html = fetch_by_date_report(event_id, after_date)
+        print("Successfully fetched by_date report")
+        with open(DEFAULT_BY_DATE_FILENAME, "w") as f:
+            f.write(by_date_html)
+
+        by_school_filename = DEFAULT_BY_SCHOOL_FILENAME
+        by_number_filename = DEFAULT_BY_NUMBER_FILENAME
+        by_date_filename = DEFAULT_BY_DATE_FILENAME
     else:
-        by_school_filename = input(
-            'Enter the "Competitor By School" filename: '
-        )
-        by_date_filename = input('Enter the "Entries by Date" filename: ')
-        by_number_filename = input(
-            'Enter the "Competitor By Number" filename: '
-        )
+        print("Unknown mode")
+        exit(1)
 
     by_school_table = pd.read_html(by_school_filename, header=0)[0]
-    by_date_table = pd.read_html(by_date_filename, header=0)[0]
     by_number_table = pd.read_html(by_number_filename, header=0)[0]
+    by_date_table = pd.read_html(by_date_filename, header=0)[0]
 
     # Create target directory if it doesn't exist
     if not os.path.isdir(TARGET_DIR):
@@ -136,8 +197,7 @@ def main():
             elif (by_date_table["Follow"] == name).any():
                 entry = by_date_table.loc[by_date_table["Follow"] == name]
             else:
-                # Skip and log dancers who are under a school but not registered in a style
-                print(f"> {name} Not registered in any styles?")
+                # Skip dancers who are under a school but not registered in a style
                 school_reg.loc[index, "Pass"] = "NO STYLES"
                 continue
 
@@ -179,7 +239,6 @@ def main():
 
         if not has_registered:
             print(f"> No dancers from {school_name}")
-            return
 
         # Remove index column
         school_reg = school_reg.drop(columns=["index"])
