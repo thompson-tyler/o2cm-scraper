@@ -15,6 +15,9 @@ EARLY_REG_CUTOFF_DAY = 19
 
 TARGET_DIR = "./target"
 
+OPEN_KEYWORDS = ["open", "champ"]
+OPEN_KEYWORDS_CASE_SENSITIVE = False
+
 
 def verify_file(filename):
     if not os.path.isfile(filename):
@@ -102,6 +105,9 @@ def main():
         ~by_school_table["Full Name"].str.startswith("TBA")
     ]
 
+    # Add Number column to by_school_table
+    by_school_table["Number"] = None
+
     ### Process tables ###
 
     # Blank dict to store open dancers. Will be converted to a DataFrame later
@@ -125,9 +131,9 @@ def main():
 
         for index, name in enumerate(school_reg["Full Name"]):
             # Find dancer's entry in either the leader or follower column
-            if by_date_table["Leader"].str.contains(name).any():
+            if (by_date_table["Leader"] == name).any():
                 entry = by_date_table.loc[by_date_table["Leader"] == name]
-            elif by_date_table["Follow"].str.contains(name).any():
+            elif (by_date_table["Follow"] == name).any():
                 entry = by_date_table.loc[by_date_table["Follow"] == name]
             else:
                 # Skip and log dancers who are under a school but not registered in a style
@@ -136,8 +142,8 @@ def main():
                 continue
 
             # Get their number, if they have one, and set it in the school_reg
-            num_cell = by_number_table.loc[
-                by_number_table["Full Name"] == name, "Number"
+            num_cell = by_number_table[by_number_table["Full Name"] == name][
+                "Number"
             ]
             if not num_cell.empty:
                 school_reg.loc[index, "Number"] = str(num_cell.iloc[0])
@@ -148,7 +154,9 @@ def main():
                     (by_date_table["Leader"] == name)
                     | (by_date_table["Follow"] == name)
                 ]["Event"]
-                .str.contains("Open")
+                .str.contains(
+                    "|".join(OPEN_KEYWORDS), case=OPEN_KEYWORDS_CASE_SENSITIVE
+                )
                 .all()
             )
             # Insert them into the open_dancers table and mark their pass as "OPEN"
