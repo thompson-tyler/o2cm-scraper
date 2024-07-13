@@ -1,13 +1,21 @@
 # O2CM Quote Scraper
 
-## Dependencies
+## Setup
 
-1. Python 3 - [get it here](https://www.python.org/downloads/)
-2. Python libraries, install them with `pip install -r requirements.txt`
+1. Install Python 3 - there's a fine guide on installing it found on the [official wiki](https://wiki.python.org/moin/BeginnersGuide/Download). TLDR: on Mac and Windows download it from [here](https://www.python.org/downloads/); on Linux you must refer to your package manager.
+   - All the following commands *may* need to be run using `python3` instead of just `python`. Make sure that `python --version` prints out some `3.XX` version or use `python3` if not.
+2. Create a virtual environment by running `python -m venv env`
+   - If you get a `no module named venv` message or similar, google around and get it installed.
+3. Activate the virtual environment with `source env/bin/activate` (Linux & Mac) or `env/Scripts/activate.bat` (Windows)
+4. Install the required Python packages with `python -m pip install -r requirements.txt`
+   - Once again, if you get a `no module named pip` message then google around to see about getting it installed.
+5. Follow the instructions under [usage](#usage) to run the script!
 
 ## Usage
 
-Once you install the required dependencies above, the quickest way to get started is to run the program in "auto" mode. You can do this by running `python registration.py auto` and entering your O2CM event ID and the start date for the report. As I'm sure you'd like more information on what's going on, I implore you to read on!
+If you created a virtual environment during setup, make sure to activate it (Linux & Mac: `source env/bin/activate`; Windows: `env/Scripts/activate.bat`) before running the script. *This has to be done any time your terminal is restarted!*
+
+The quickest way to get started is to run the program in "auto" mode. You can do this by running `python registration.py auto` and entering your O2CM event ID and the start date for the report. As I'm sure you'd like more information on what's going on, I implore you to read on!
 
 This program needs a few competitor reports from O2CM to work properly. You can either have them fetched automatically or point it at local files that you've downloaded manually. The two methods are detailed below.
 
