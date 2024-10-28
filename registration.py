@@ -128,9 +128,25 @@ def main():
         print("Unknown mode")
         exit(1)
 
-    by_school_table = pd.read_html(by_school_filename, header=0)[0]
-    by_number_table = pd.read_html(by_number_filename, header=0)[0]
-    by_date_table = pd.read_html(by_date_filename, header=0)[0]
+    # If the html we got doesn't parse, then it's probably because the tables were empty
+    # In that case, create empty tables
+    try:
+        by_school_table = pd.read_html(by_school_filename, header=0)[0]
+    except ValueError:
+        by_school_table = pd.DataFrame(columns=["First", "Last", "school"])
+        print(f"WARNING: couldn't parse entries from {by_school_filename}")
+    try:
+        by_number_table = pd.read_html(by_number_filename, header=0)[0]
+    except ValueError:
+        by_number_table = pd.DataFrame(columns=["First", "Last", "Number"])
+        print(f"WARNING: couldn't parse entries from {by_number_filename}")
+    try:
+        by_date_table = pd.read_html(by_date_filename, header=0)[0]
+    except ValueError:
+        by_date_table = pd.DataFrame(
+            columns=["Date", "Event", "Leader", "Follow"]
+        )
+        print(f"WARNING: couldn't parse entries from {by_date_filename}")
 
     # Create target directory if it doesn't exist
     if not os.path.isdir(TARGET_DIR):
