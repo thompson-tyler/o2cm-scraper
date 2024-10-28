@@ -1,6 +1,7 @@
 import pandas as pd
 import os
 import argparse
+import re
 
 from reports import *
 
@@ -22,6 +23,8 @@ DEFAULT_BY_DATE_FILENAME = "by_date.html"
 
 OPEN_KEYWORDS = ["open", "champ"]
 OPEN_KEYWORDS_CASE_SENSITIVE = False
+
+DATE_REGEX = r"(\d{4})-(\d{2})-(\d{2})"
 
 
 def build_parser():
@@ -105,6 +108,9 @@ def main():
         after_date = args.after_date or input(
             "Date after which to fetch entries (YYYY-MM-DD): "
         )
+        if not re.match(DATE_REGEX, after_date):
+            print("Invalid date format. Must be YYYY-MM-DD")
+            exit(1)
 
         by_school_html = fetch_by_school_report(event_id)
         print("Successfully fetched by_school report")
