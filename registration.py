@@ -184,6 +184,9 @@ def main():
     by_school_table["school"] = by_school_table["school"].fillna("Unaffiliated")
 
     # Remove TBA entries
+    print(by_school_table)
+    # Ensure "Full Name" column contains only strings
+    by_school_table["Full Name"] = by_school_table["Full Name"].astype(str)
     by_school_table = by_school_table[
         ~by_school_table["Full Name"].str.startswith("TBA")
     ]
